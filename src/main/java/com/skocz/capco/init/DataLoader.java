@@ -1,4 +1,4 @@
-package com.skocz.capco.controller;
+package com.skocz.capco.init;
 
 import com.skocz.capco.repository.GlobalFeatureFlagRepository;
 import com.skocz.capco.repository.UserFeatureFlagRepository;
