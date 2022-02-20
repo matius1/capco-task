@@ -36,6 +36,27 @@ public class FeatureFlagsService {
 
     }
 
+    public GlobalFeature createFeature(String newFeatureName) {
+        log.info("Create feature flag: " + newFeatureName);
+
+        checkIfFeatureFlagExists(newFeatureName);
+
+        return createFeatureFlag(newFeatureName);
+    }
+
+    public Set<String> getEnabledFeaturesForUser(Integer userId) {
+        log.info("Search for enabled feature flags for user with id: " + userId);
+        User user = getUserById(userId);
+
+        List<GlobalFeature> globalEnabledFeatures = globalFeatureRepository.findAllByEnabled(true);
+        List<UserFeature> userFeatures = userFeatureRepository.findAllByUser(user);
+
+        Set<String> enabledFeatures = calculateEnabledFeatures(globalEnabledFeatures, userFeatures);
+
+        log.info("Returning feature flags for user with id: " + userId + " - " + enabledFeatures);
+        return enabledFeatures;
+    }
+
     private UserFeature createUserFeatureFlag(String featureFlagName, boolean isEnabled, User user) {
         UserFeature toCreate = UserFeature.builder()
                 .user(user)
@@ -54,14 +75,6 @@ public class FeatureFlagsService {
         UserFeature updated = userFeatureRepository.save(userFeatureFlag);
         log.info("There was existing user flag. Saved updated: " + updated);
         return updated;
-    }
-
-    public GlobalFeature createFeature(String newFeatureName) {
-        log.info("Create feature flag: " + newFeatureName);
-
-        checkIfFeatureFlagExists(newFeatureName);
-
-        return createFeatureFlag(newFeatureName);
     }
 
     private GlobalFeature createFeatureFlag(String newFeatureName) {
@@ -88,19 +101,6 @@ public class FeatureFlagsService {
             log.info("Feature flag with name: " + newFeatureName + " do not exists");
             throw new FeatureFlagException("Feature flag with name: " + newFeatureName + " do not exists");
         }
-    }
-
-    public Set<String> getEnabledFeaturesForUser(Integer userId) {
-        log.info("Search for enabled feature flags for user with id: " + userId);
-        User user = getUserById(userId);
-
-        List<GlobalFeature> globalEnabledFeatures = globalFeatureRepository.findAllByEnabled(true);
-        List<UserFeature> userFeatures = userFeatureRepository.findAllByUser(user);
-
-        Set<String> enabledFeatures = calculateEnabledFeatures(globalEnabledFeatures, userFeatures);
-
-        log.info("Returning feature flags for user with id: " + userId + " - " + enabledFeatures);
-        return enabledFeatures;
     }
 
     private Set<String> calculateEnabledFeatures(List<GlobalFeature> globalEnabledFeatures, List<UserFeature> userFeatures) {
